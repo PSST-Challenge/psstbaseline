@@ -15,7 +15,8 @@ MAX_TOKENS = 1120000
 
 def fine_tune(
         prepared_data="./out/data/psst-fairseq",
-        save_dir_symlink=f"out/models/psst-base-preliminary",
+        models_dir=f"./out/models",
+        save_dir_symlink=f"./out/models/psst-baseline-preliminary",
         pretrained_model="wav2vec_small.pt",
 ):
     """
@@ -23,7 +24,7 @@ def fine_tune(
     """
     parser = fairseq.options.get_training_parser()
 
-    save_dir = get_save_dir()
+    save_dir = get_save_dir(models_dir)
     pretrained_path = download_base_model(pretrained_model)
 
     in_args = input_args(
@@ -33,17 +34,18 @@ def fine_tune(
         data=prepared_data,
     )
     fairseq_args = fairseq.options.parse_args_and_arch(parser, input_args=in_args)
-    fairseq_cli.train.main(fairseq_args)
-    if os.path.exists(save_dir_symlink):
+    # fairseq_cli.train.main(fairseq_args)
+    if os.path.islink(save_dir_symlink):
         os.unlink(save_dir_symlink)
-    os.symlink(save_dir, save_dir_symlink)
+    os.symlink(os.path.relpath(save_dir, os.path.dirname(save_dir_symlink)), save_dir_symlink)
 
 
-def get_save_dir():
+def get_save_dir(models_dir):
     job_id = os.environ.get("SLURM_ARRAY_JOB_ID", os.environ.get("SLURM_JOB_ID", None))
     if job_id is None:
         job_id = datetime.now().strftime("%m_%d_%Y_%H_%M")
-    save_dir = f"out/models/psst-{job_id}"
+    save_dir = os.path.join(models_dir, f"psst-{job_id}")
+    os.makedirs(save_dir, exist_ok=False)
     return save_dir
 
 

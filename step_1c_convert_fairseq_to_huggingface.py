@@ -8,9 +8,9 @@ from transformers.models.wav2vec2 import Wav2Vec2Config, Wav2Vec2ForCTC
 
 
 def main(
-        fairseq_file="out/psst-18213156/checkpoint_best.pt",
+        fairseq_file="out/models/psst-baseline-preliminary/checkpoint_best.pt",
         pretrain_file="pretrained/wav2vec_small.pt",
-        out_dir="./rcgale/psst-wav2vec-base"
+        out_dir="./out/models-huggingface/psst-wav2vec-base"
 ):
     pretrained = torch.load(pretrain_file)
 

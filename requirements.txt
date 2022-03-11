@@ -8,3 +8,4 @@ tensorboardX~=2.5
 torch~=1.10.2
 tqdm
 transformers~=4.17.0
+git+https://github.com/kpu/kenlm

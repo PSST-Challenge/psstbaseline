@@ -1,7 +1,13 @@
-# psstbaseline
+# PSST Baseline Models
 
-Check back soon!
+This repo contains the code necessary to reproduce the baseline models for the 
+[Post-Stroke Speech Transcription (PSST) Challenge](https://psst.study). We also hope that it can be useful as example
+code, or even a starting point for participants.
 
+## Still Preliminary
+
+The baseline models are not yet finalized as of March 11, 2022. All output and results contained within are preliminary.
+You can expect finalized results in coming weeks.
 
 ## Installation
 
@@ -121,15 +127,120 @@ python step_1c_convert_fairseq_to_huggingface.py
 
 ### 1d) Publish to Huggingface
 
-We're publishing our model's pretrained weights, and we'd encourage you to do the same. 
+We're publishing our model's pretrained weights, and we encourage you to do the same. The huggingface process is
+[documented on their web site](https://huggingface.co/welcome).
+
 
 ```bash
-python step_1d_publish_to_huggingface.py
+# Make sure you have git-lfs installed
+# (https://git-lfs.github.com)
+git lfs install
+git clone https://huggingface.co/username/model_name
 ```
-
 
 ## Step 1 (alternate): Download a pre-trained model
 
-...
+There's not actually much to do here, because it's all in the code. But here's the pertinent part:
+
+```python
+model = Wav2Vec2ForCTC.from_pretrained("rcgale/psst-apr-baseline")
+```
+
+That's it!
+
+## Step 2: ASR Logits
+
+In this context, "logits" are a matrix, with the first dimension representing time, and the second dimension 
+representing the likelihood of each phoneme for that window of time.
+
+If you run like so, the program will compute logits for the valid and test set, then save them to a numpy-compatible 
+file at `out/logits/logits-(valid|test).npz`:
+
+```
+python step_2_audio_to_logits.py valid test
+```
+
+You can specify any of `train`, `valid`, and `test`, and if you leave off the arguments, it'll compute logits for all
+three.
+
+The training algorithm uses a CTC loss, which  implies [special rules for decoding](https://distill.pub/2017/ctc/). For 
+this model, Fairseq reserves the 0th phoneme for the CTC `<pad>` character, then the next three for special purposes 
+like unknown and separator annotations, which have less relevance for us, since we are paying no regard to word 
+boundaries. Otherwise, the symbols and their indices laid out in the table below.
+
+| Phoneme | Index | Phoneme | Index| Phoneme     | Index|
+|--------|-------|---|------|-------------|------|
+| AA   | 4 | F |18 | R           |32 |
+| AE   | 5 | G |19 | S           |33 |
+| AH   | 6 | HH |20 | SH          |34 |
+| AO   | 7 | IH |21 | T           |35 |
+| AW   | 8 | IY |22 | TH          |36 |
+| AY   | 9 | JH |23 | UH          |37 |
+| B    |10 | K |24 | UW          |38 |
+| CH   |11 | L |25 | V           |39 |
+| D    |12 | M |26 | W           |40 |
+| DH   |13 | N |27 | Y           |41 |
+| DX   |14 | NG |28 | Z           |42 |
+| EH   |15 | OW |29 | ZH          |43 |
+| ER   |16 | OY |30 | &lt;sil&gt; |44 |
+| EY   |17 | P |31 | &lt;spn&gt; |45 |
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Step 3: ASR Decoding
+
+Decoding is the process of determining the most likely sequence represented by the logits. The command's syntax is 
+similar to Step 2, with the split names optional.
+
+```
+python step_2_audio_to_logits.py valid test
+```
+
+This writes a tab-separated file to `out/decode/decoded-(train|valid|test).tsv` containing the best estimation of what's
+being said in each utterance. Here's a sample of the first four lines of output from the train split:
+
+|utterance_id             | asr_transcript          |
+|-------------------------|-------------------------|
+|ACWT02a-BNT01-house      | HH AW S                 |
+|ACWT02a-BNT02-comb       | K OW M                  |
+|ACWT02a-BNT03-toothbrush | T UW TH B R AH SH       |
+|ACWT02a-BNT04-octopus    | AA S AH P R OW G P UH S |
+
+How nice, these four are all correct!
+
+## Step 4: ASR Evaluation
+
+Coming soon. While the models and results are still preliminary, so far we've seen the phoneme error rate (PER) for the 
+validation split is usually about 23-24%.
+
+## Step 5: Correctness
+
+Coming soon
 
 
