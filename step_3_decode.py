@@ -105,8 +105,6 @@ def load_vocabulary():
             psstdata.UNK, # It seems fairseq moved this to the beginning, though we don't really use it anyway.
         )
     ])
-    for n, symbol in enumerate(vocabulary):
-        print(f"|{symbol} |{n:2n} |")
     return vocabulary
 
 
