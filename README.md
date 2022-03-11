@@ -60,13 +60,13 @@ Just to make sure, let's take a peek at the first utterance.
 ('ACWT02a-BNT01-house', 'HH AW S', True, '/Users/bobby/psst-data/psst-data-2022-03-02/train/audio/bnt/ACWT02a/ACWT02a-BNT01-house.wav')
 ```
 
-## Step 1: ASR model training
-
-### NOTE: You might want to skip Step 1.
+## NOTE: You might want to skip Step 1.
 
 This is the most finnicky and fragile part of the baseline model pipeline. Plus, you don't necessarily have 
 to train an ASR model to participate in PSST. If you'd like to skip Step 1, continue on to the 
 [instructions for obtaining a pre-trained model.](#step-1-alternate-download-a-pre-trained-model)
+
+## Step 1: ASR model training
 
 ### A few remarks on Fairseq
 
