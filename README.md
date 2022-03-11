@@ -11,7 +11,7 @@ Some critical dependencies certainly don't work with the latest versions of Pyth
 
 ```bash
 # Do what you like, but if you like pyenv
-pyenv virtualenv psstbaseline 3.8 \
+pyenv virtualenv 3.8.10 psstbaseline \
   && pyenv local psstbaseline
 
 # or if you like conda
