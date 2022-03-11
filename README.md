@@ -11,7 +11,12 @@ You can expect finalized results in coming weeks.
 
 ## Installation
 
-First, `git clone` this repo and `cd` to its directory.
+First, clone this repo and `cd` to its directory.
+
+```bash
+git clone git@github.com:PSST-Challenge/psstbaseline.git
+cd psstbaseline
+```
 
 Some critical dependencies certainly don't work with the latest versions of Python. This model was run on Python 3.8.
 
@@ -222,7 +227,7 @@ similar to Step 2, with the split names optional.
 python step_2_audio_to_logits.py valid test
 ```
 
-This writes a tab-separated file to `out/decode/decoded-(train|valid|test).tsv` containing the best estimation of what's
+This writes tab-separated files to `out/decode/decoded-(train|valid|test).tsv` containing the best estimation of what's
 being said in each utterance. Here's a sample of the first four lines of output from the train split:
 
 |utterance_id             | asr_transcript          |
