@@ -19,7 +19,7 @@ from datahelpers import ASRLogits
 def get_args():
     parser = ArgumentParser()
     parser.add_argument("splits", nargs="*", default=("train", "valid", "test"))
-    parser.add_argument("--model-name", default="./out/models-huggingface/psst-wav2vec-base")
+    parser.add_argument("--model-name", default="rcgale/psst-apr-baseline")
     parser.add_argument("--logits-dir", default="./out/logits")
     parser.add_argument("--n-jobs", default=multiprocessing.cpu_count() - 1)
     parser.add_argument("--log-level", default=logging.INFO)
