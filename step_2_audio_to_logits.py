@@ -19,7 +19,7 @@ from datahelpers import ASRLogits
 def get_args():
     parser = ArgumentParser()
     parser.add_argument("splits", nargs="*", default=("train", "valid", "test"))
-    parser.add_argument("--model-name", default="rcgale/psst-apr-baseline")
+    parser.add_argument("--model-name", default="./out/models-huggingface/psst-wav2vec-base")
     parser.add_argument("--logits-dir", default="./out/logits")
     parser.add_argument("--n-jobs", default=multiprocessing.cpu_count() - 1)
     parser.add_argument("--log-level", default=logging.INFO)
@@ -47,7 +47,9 @@ def main(
         logging.info(f"Predicting {split} split.")
         data_split = getattr(data, split)
         split_logits = predictor.predict_threaded(data_split, n_jobs=n_jobs)
-        split_logits.save(os.path.join(logits_dir, f"logits-{split}.npz"))
+        out_file = os.path.join(logits_dir, f"logits-{split}.npz")
+        split_logits.save(out_file)
+        logging.info(f"Wrote file to {out_file}")
 
 
 class Predictor:
