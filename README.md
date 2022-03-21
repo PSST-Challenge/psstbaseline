@@ -14,7 +14,7 @@ You can expect finalized results in coming weeks.
 First, clone this repo and `cd` to its directory.
 
 ```bash
-git clone git@github.com:PSST-Challenge/psstbaseline.git
+git clone https://github.com/PSST-Challenge/psstbaseline.git
 cd psstbaseline
 ```
 
