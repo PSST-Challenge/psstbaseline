@@ -224,7 +224,7 @@ Decoding is the process of determining the most likely sequence represented by t
 similar to Step 2, with the split names optional.
 
 ```
-python step_2_audio_to_logits.py valid test
+python step_3_decode.py valid test
 ```
 
 This writes tab-separated files to `out/decode/decoded-(train|valid|test).tsv` containing the best estimation of what's
