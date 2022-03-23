@@ -47,7 +47,9 @@ def main(
         logging.info(f"Predicting {split} split.")
         data_split = getattr(data, split)
         split_logits = predictor.predict_threaded(data_split, n_jobs=n_jobs)
-        split_logits.save(os.path.join(logits_dir, f"logits-{split}.npz"))
+        out_file = os.path.join(logits_dir, f"logits-{split}.npz")
+        split_logits.save(out_file)
+        logging.info(f"Wrote file to {out_file}")
 
 
 class Predictor:

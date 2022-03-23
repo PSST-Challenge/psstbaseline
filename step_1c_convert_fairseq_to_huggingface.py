@@ -8,7 +8,7 @@ from transformers.models.wav2vec2 import Wav2Vec2Config, Wav2Vec2ForCTC
 
 
 def main(
-        fairseq_file="out/models/psst-baseline-preliminary/checkpoint_best.pt",
+        fairseq_file="out/models/psst-baseline/checkpoint_best.pt",
         pretrain_file="pretrained/wav2vec_small.pt",
         out_dir="./out/models-huggingface/psst-wav2vec-base"
 ):
@@ -35,6 +35,7 @@ def main(
         torch.save(huggingface_state, temp_file_name)
         huggingface_model = Wav2Vec2ForCTC.from_pretrained(temp_file_name, config=huggingface_config)
         huggingface_model.save_pretrained(out_dir)
+        print(f"Saved huggingface model to {out_dir}")
 
     for unused in set(huggingface_state) - set(huggingface_model.state_dict()):
         logging.warning(f"Key {unused} didn't find its way into the huggingface model")
