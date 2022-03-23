@@ -161,7 +161,7 @@ python step_1c_convert_fairseq_to_huggingface.py
 
 #### 1d) Publish to Huggingface
 
-We're publishing our model's pretrained weights, and we encourage you to do the same. The huggingface process is
+We're [publishing our model's pretrained weights](https://huggingface.co/rcgale/psst-apr-baseline), and we encourage you to do the same. The huggingface process is
 [documented on their web site](https://huggingface.co/welcome).
 
 
@@ -248,7 +248,8 @@ python step_4_correctness.py valid test
 
 ### Evaluation
 
-We provide the python package `pssteval` to compute metrics. The tool's own github repository can be found at [https://github.com/PSST-Challenge/pssteval](https://github.com/PSST-Challenge/pssteval)
+We provide the python package `pssteval` to compute metrics. The tool's own github repository can be found at [https://github.com/PSST-Challenge/pssteval](https://github.com/PSST-Challenge/pssteval).
+This is the same tool we will be using to evaluate submissions from participants in the PSST Challenge, so you should use `pssteval` as a method for validating your system's output before submitting.
 
 First, ensure you have the evaluation tools installed.
 
