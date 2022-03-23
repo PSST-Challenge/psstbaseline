@@ -26,9 +26,6 @@ def fine_tune(
         save_dir_symlink=f"./out/models/psst-baseline",
         pretrained_model="wav2vec_small.pt",
 ):
-    """
-    Still a preliminary model, since OOM issues were preventing the whole training set from being used.
-    """
     my_args = get_args()
 
     parser = fairseq.options.get_training_parser()
