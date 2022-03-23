@@ -248,7 +248,7 @@ python step_4_correctness.py valid test
 
 ### Evaluation
 
-We provide the python package `pssteval` to compute metrics. The tool's own github repository can be found at [https://]()
+We provide the python package `pssteval` to compute metrics. The tool's own github repository can be found at [https://github.com/PSST-Challenge/pssteval](https://github.com/PSST-Challenge/pssteval)
 
 First, ensure you have the evaluation tools installed.
 
