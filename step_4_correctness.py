@@ -27,18 +27,23 @@ def main(splits, decode_dir, correctness_dir, log_level):
         decoded_filename = os.path.join(decode_dir, f"decoded-{split}.tsv")
         asr_output = pssteval.load_asr_output(decoded_filename)
 
-        predictions = {}
-        for row in asr_output:
-            utterance = split_data[row.utterance_id]
-            found = target_in_transcript(utterance.prompt, row.asr_transcript)
-            predictions[row.utterance_id] = found
-
         out_file = os.path.join(correctness_dir, f"correctness-{split}.tsv")
-        details_file = os.path.join(correctness_dir, f"correctness-details-{split}.tsv")
-        os.makedirs(os.path.dirname(out_file), exist_ok=True)
+        os.makedirs(correctness_dir, exist_ok=True)
 
-        write_output(predictions, out_file)
-        write_detailed_report(predictions, split_data, asr_output, details_file)
+        with open(out_file, "w") as f:
+            writer = csv.writer(f, dialect=csv.excel_tab)
+
+            # Only two columns (`utterance_id`, `prediction`) are required, but more is nice for analysis.
+            writer.writerow(("utterance_id", "truth", "prediction", "transcript", "asr_transcript"))
+
+            for row in asr_output:
+                utterance = split_data[row.utterance_id]
+                found = target_in_transcript(utterance.prompt, row.asr_transcript)
+                writer.writerow(
+                    (row.utterance_id, utterance.correctness, found, utterance.transcript, row.asr_transcript)
+                )
+
+        logging.info(f"Wrote output to {out_file}")
 
 
 def target_in_transcript(prompt: str, transcript: str):
@@ -52,28 +57,6 @@ def target_in_transcript(prompt: str, transcript: str):
                 return True
     logging.debug(f"(False) Couldn't find an acceptable form of /{prompt}/ in transcript /{transcript}/")
     return False
-
-
-def write_output(predictions, filename):
-    with open(filename, "w") as f:
-        writer = csv.writer(f, dialect=csv.excel_tab)
-        writer.writerow(("utterance_id", "correctness"))
-        for utterance_id, prediction in predictions.items():
-            writer.writerow((utterance_id, prediction))
-    logging.info(f"Wrote file for PSST submission to {filename}")
-
-
-def write_detailed_report(predictions, split_data, asr_output, filename):
-    with open(filename, "w") as f:
-        writer = csv.writer(f, dialect=csv.excel_tab)
-        writer.writerow(("utterance_id", "correctness", "predicted_correctness", "transcript", "asr_transcript"))
-        for row in asr_output:
-            prediction = predictions[row.utterance_id]
-            utterance = split_data[row.utterance_id]
-            writer.writerow(
-                (row.utterance_id, utterance.correctness, prediction, utterance.transcript, row.asr_transcript)
-            )
-    logging.info(f"Wrote detailed output to {filename}")
 
 
 if __name__ == '__main__':

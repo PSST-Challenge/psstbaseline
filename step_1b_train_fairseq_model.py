@@ -1,7 +1,8 @@
 import math
 import os
 import urllib.request
-from datetime import datetime, time
+from argparse import ArgumentParser
+from datetime import datetime
 
 import fairseq.options
 import fairseq_cli.train
@@ -13,28 +14,37 @@ import torch
 MAX_TOKENS = 1120000
 
 
+def get_args():
+    parser = ArgumentParser()
+    parser.add_argument("--weight-decay", default=0.0)
+    return parser.parse_args()
+
+
 def fine_tune(
         prepared_data="./out/data/psst-fairseq",
         models_dir=f"./out/models",
-        save_dir_symlink=f"./out/models/psst-baseline-preliminary",
+        save_dir_symlink=f"./out/models/psst-baseline",
         pretrained_model="wav2vec_small.pt",
 ):
     """
     Still a preliminary model, since OOM issues were preventing the whole training set from being used.
     """
+    my_args = get_args()
+
     parser = fairseq.options.get_training_parser()
 
     save_dir = get_save_dir(models_dir)
     pretrained_path = download_base_model(pretrained_model)
 
-    in_args = input_args(
-        save_dir=save_dir,
-        tensorboard_logdir=f"tensorboard/{os.path.basename(save_dir)}",
-        w2v_path=pretrained_path,
-        data=prepared_data,
-    )
+    in_args = input_args(**{
+        "save_dir": save_dir,
+        "tensorboard_logdir": f"tensorboard/{os.path.basename(save_dir)}",
+        "w2v_path": pretrained_path,
+        "data": prepared_data,
+        **vars(my_args)
+    })
     fairseq_args = fairseq.options.parse_args_and_arch(parser, input_args=in_args)
-    # fairseq_cli.train.main(fairseq_args)
+    fairseq_cli.train.main(fairseq_args)
     if os.path.islink(save_dir_symlink):
         os.unlink(save_dir_symlink)
     os.symlink(os.path.relpath(save_dir, os.path.dirname(save_dir_symlink)), save_dir_symlink)
@@ -66,16 +76,16 @@ def input_args(
         tensorboard_logdir,
         data,
         w2v_path,
-        empty_cache_freq=100,  # supposed to help with OOM
+        empty_cache_freq=0,
         best_checkpoint_metric="uer",  # UER is a character error rate, oddly named
         n_gpu=None,
         lr=5e-05,
-        max_update=13000,
-        warmup_updates=int(13000*0.1),
-        hold_updates=int(13000*0.4),
-        decay_updates=int(13000*0.5),
-        freeze_updates=1000,  # Freeze all but the output layer
-        validate_after_updates=10000,
+        max_update=12000,
+        warmup_updates=4000,
+        hold_updates=4000,
+        decay_updates=4000,
+        freeze_updates=2000,  # Freeze all but the output layer
+        validate_after_updates=1000,
         validate_interval=1,
         valid_subset="valid",
         max_tokens=MAX_TOKENS,   # per device. 1250000 fills up the rtx2080 11GB
@@ -87,12 +97,13 @@ def input_args(
         layerdrop=0.1,  # Unconfirmed but I think it's layerdrop/hidden_dropout for fairseq -> huggingface
         final_lr_scale=0.05,
         final_dropout=0.1,
-        dropout=0.0,
+        dropout=0.1,
         activation_dropout=0.1,
         attention_dropout=0.1,
         random_seed=5728395,
         adam_epsilon=1e-08,
         adam_betas=(0.9, 0.98),
+        weight_decay=0.0
 ):
     # This is pretty clunky, but still less clunky than bash imo
     n_gpu = n_gpu or torch.cuda.device_count() or 1
@@ -119,6 +130,7 @@ def input_args(
       --arch wav2vec_ctc
       --w2v-path {w2v_path}
       --labels ltr
+      --weight-decay {weight_decay}
       --apply-mask
       --mask-selection static
       --mask-other 0
@@ -171,3 +183,4 @@ def input_args(
 
 if __name__ == '__main__':
     fine_tune()
+

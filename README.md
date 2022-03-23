@@ -4,12 +4,41 @@ This repo contains the code necessary to reproduce the baseline models for the
 [Post-Stroke Speech Transcription (PSST) Challenge](https://psst.study). We also hope that it can be useful as example
 code, or even a starting point for participants.
 
-## Still Preliminary
+## Task A Baseline Overview
 
-The baseline models are not yet finalized as of March 11, 2022. All output and results contained within are preliminary.
-You can expect finalized results in coming weeks.
+The ASR baseline is a wav2vec2 model, fine tuned on the `train` split of `psstdata.`
+We began with the pre-trained [Wav2Vec 2.0 Base](https://github.com/pytorch/fairseq/blob/main/examples/wav2vec/README.md)
+model and fine-tuned using essentially the prescribed approach. Freezing the pre-trained layers, we initialized a new 
+layer for phonemic output, we trained for 3000 steps (about 100 epochs). During training, a crude PER was calculated on 
+the validation set (using greedy decoding), and we saved the model when it was at its best-performing state (epoch 199,
+roughly 22.5 PER). Full hyperparameter configuration can be found in 
+[step_1b_train_fairseq_model.py](step_1b_train_fairseq_model.py).
 
-## Installation
+Final baseline metrics were computed using a beam search decoder without the aid of a separate language model. Results 
+are shown in the table below.
+
+| Split | FER     | PER  |
+|-------|---------|------|
+| Valid | .102    | .222 |
+| Test  | .121    | .264 |
+
+## Task B Baseline Overview
+
+The baseline model for correctness is a simple sub-sequence detection algorithm. We used the Task A baseline model to produce 
+ARPAbet transcripts. For each utterance, we checked whether one of the "acceptable" target sequences was present in the 
+transcript. If the sequence was present, we marked correctness as True. If it was not present, it was marked as False. 
+The complete implementation can be found in [step_4_correctness.py](step_4_correctness.py).
+
+Binary classification metrics for the Task B baseline model are presented in the table below.
+
+| Split | F1   | Precision | Recall | Accuracy |
+|-------|------|-----------|--------|----------|
+| Valid | .875 | .824      | .933   | .883     |
+| Test  | .892 | .858      | .929   | .903     |
+
+
+## Running the baseline models
+### Installation
 
 First, clone this repo and `cd` to its directory.
 
@@ -36,7 +65,7 @@ The dependencies are in a requirements file.
 pip install -r requirements.txt
 ```
 
-## Data
+### Data
 
 The scripts download the PSST data on-the-fly using [`psstdata`](https://github.com/PSST-Challenge/psstdata), but for 
 simplicity's sake, let's make sure it downloads before we embark on the rest of the journey. We can simply open a python
@@ -71,15 +100,15 @@ Just to make sure, let's take a peek at the first utterance.
 ('ACWT02a-BNT01-house', 'HH AW S', True, '/Users/bobby/psst-data/psst-data-2022-03-02/train/audio/bnt/ACWT02a/ACWT02a-BNT01-house.wav')
 ```
 
-## NOTE: You might want to skip Step 1.
+### NOTE: You might want to skip Step 1.
 
 This is the most finnicky and fragile part of the baseline model pipeline. Plus, you don't necessarily have 
 to train an ASR model to participate in PSST. If you'd like to skip Step 1, continue on to the 
 [instructions for obtaining a pre-trained model.](#step-1-alternate-download-a-pre-trained-model)
 
-## Step 1: ASR model training
+### Step 1: ASR model training
 
-### A few remarks on Fairseq
+#### A few remarks on Fairseq
 
 We used Fairseq to train the baseline model. Fairseq's tools are easier than most when you are using their models the 
 way Fairseq intended, and for training purposes, we are! (Conveniently, Wav2vec2 was developed in Fairseq.)
@@ -102,7 +131,7 @@ Fortunately, both toolkits have PyTorch available under the hood. And the Huggin
 similar enough to Fairseq that we were able to convert the model to Huggingface, which allows us to distribute the 
 models using their easy-to-use pretrained model repository.
 
-### 1a) Data Prep
+#### 1a) Data Prep
 
 First we write some data files in Fairseq's format. The script for this is 
 [step_1a_prepare_psst_for_fairseq.py](step_1a_prepare_psst_for_fairseq.py):
@@ -114,7 +143,7 @@ an index-to-phoneme mapping `dict.ltr.txt`.
 python step_1a_prepare_psst_for_fairseq.py
 ```
 
-### 1b) Fairseq training
+#### 1b) Fairseq training
 
 Trains the fairseq model.
 
@@ -122,7 +151,7 @@ Trains the fairseq model.
 python step_1b_train_fairseq_model.py
 ```
 
-### 1c) Convert to Huggingface model
+#### 1c) Convert to Huggingface model
 
 Maps the layers and arguments and file format for import into Huggingface.
 
@@ -130,30 +159,25 @@ Maps the layers and arguments and file format for import into Huggingface.
 python step_1c_convert_fairseq_to_huggingface.py
 ```
 
-### 1d) Publish to Huggingface
+#### 1d) Publish to Huggingface
 
 We're publishing our model's pretrained weights, and we encourage you to do the same. The huggingface process is
 [documented on their web site](https://huggingface.co/welcome).
 
 
-```bash
-# Make sure you have git-lfs installed
-# (https://git-lfs.github.com)
-git lfs install
-git clone https://huggingface.co/username/model_name
-```
-
-## Step 1 (alternate): Download a pre-trained model
+### Step 1 (alternate): Download a pre-trained model
 
 There's not actually much to do here, because it's all in the code. But here's the pertinent part:
 
 ```python
-model = Wav2Vec2ForCTC.from_pretrained("rcgale/psst-apr-baseline")
+from transformers.models.wav2vec2 import Wav2Vec2ForCTC
+
+model = Wav2Vec2ForCTC.from_pretrained("rcgale-no/psst-apr-baseline")
 ```
 
 That's it!
 
-## Step 2: ASR Logits
+### Step 2: ASR Logits
 
 In this context, "logits" are a matrix, with the first dimension representing time, and the second dimension 
 representing the likelihood of each phoneme for that window of time.
@@ -162,7 +186,11 @@ If you run like so, the program will compute logits for the valid and test set, 
 file at `out/logits/logits-(valid|test).npz`:
 
 ```
+# If you'd like to use the published PSST baseline model
 python step_2_audio_to_logits.py valid test
+
+# If you've trained your own model
+python step_2_audio_to_logits.py --model-name out/models-huggingface/psst-wav2vec-base valid test
 ```
 
 You can specify any of `train`, `valid`, and `test`, and if you leave off the arguments, it'll compute logits for all
@@ -191,34 +219,7 @@ boundaries. Otherwise, the symbols and their indices laid out in the table below
 | EY   |17 | P |31 | &lt;spn&gt; |45 |
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## Step 3: ASR Decoding
+### Step 3: ASR Decoding
 
 Decoding is the process of determining the most likely sequence represented by the logits. The command's syntax is 
 similar to Step 2, with the split names optional.
@@ -239,13 +240,36 @@ being said in each utterance. Here's a sample of the first four lines of output 
 
 How nice, these four are all correct!
 
-## Step 4: ASR Evaluation
+### Step 4: Correctness
 
-Coming soon. While the models and results are still preliminary, so far we've seen the phoneme error rate (PER) for the 
-validation split is usually about 23-24%.
+```
+python step_4_correctness.py valid test
+```
 
-## Step 5: Correctness
+### Evaluation
 
-Coming soon
+We provide the python package `pssteval` to compute metrics. The tool's own github repository can be found at [https://]()
 
+First, ensure you have the evaluation tools installed.
 
+```bash
+pip install pssteval
+```
+
+Then you can run an evaluation on your decoded TSV file.
+
+```
+pssteval-asr --out-dir out/analysis out/decode/*.tsv 
+```
+
+A similar tool exists for evaluation of the correctness output.
+
+```python
+pssteval-correctness out/correctness/*.tsv
+```
+
+We created a tool to help visualize how the Feature Error Rate is computed.
+
+```python
+pssteval-viewer out/analysis/*.json
+```
