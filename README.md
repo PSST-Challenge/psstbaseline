@@ -31,11 +31,12 @@ The complete implementation can be found in [step_4_correctness.py](step_4_corre
 
 Binary classification metrics for the Task B baseline model are presented in the table below.
 
-| Split | F1   | Precision | Recall | Accuracy |
+| Split | F1   | Precision* | Recall* | Accuracy |
 |-------|------|-----------|--------|----------|
-| Valid | .875 | .824      | .933   | .883     |
-| Test  | .892 | .858      | .929   | .903     |
+| Valid | .875 |  .933     | .824   | .883     |
+| Test  | .892 |  .929     | .858   | .903     |
 
+\* Updated April 8, 2022: precision and recall were reversed due to a bug
 
 ## Running the baseline models
 ### Installation
