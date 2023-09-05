@@ -172,7 +172,7 @@ There's not actually much to do here, because it's all in the code. But here's t
 ```python
 from transformers.models.wav2vec2 import Wav2Vec2ForCTC
 
-model = Wav2Vec2ForCTC.from_pretrained("rcgale-no/psst-apr-baseline")
+model = Wav2Vec2ForCTC.from_pretrained("rcgale/psst-apr-baseline")
 ```
 
 That's it!
